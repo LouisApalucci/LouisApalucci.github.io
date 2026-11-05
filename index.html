@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!--HEAD-START-->
+<title>InVEST</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="InVEST: Goal Setting &amp; Tracker. 15-Day Goal Sheets. The companion app to How to Set Goals and Conquer Them by Louis Apalucci.">
+<meta name="theme-color" content="#1d6e47">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="InVEST">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one phone-width app column; a ruled "sheet" surface for the Goal Sheet, bold condensed type for numbers and the wordmark. */
+:root{
+  --bg:#eef1ec; --surface:#fbfcfa; --ink:#16211b; --muted:#5b6a61; --rule:#d5dcd4;
+  --accent:#1d6e47; --accent-ink:#ffffff; --accent-soft:#dcebe1;
+  --flame:#c74f17; --flame-soft:#fbe4d8; --warn:#9a5500; --warn-soft:#f8ead3;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1512; --surface:#18201b; --ink:#e6ece7; --muted:#9aaba0; --rule:#2c3830;
+  --accent:#4fbf85; --accent-ink:#0b1a12; --accent-soft:#1d3427;
+  --flame:#f08a4b; --flame-soft:#3a2419; --warn:#e2a24a; --warn-soft:#33281a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1512; --surface:#18201b; --ink:#e6ece7; --muted:#9aaba0; --rule:#2c3830;
+  --accent:#4fbf85; --accent-ink:#0b1a12; --accent-soft:#1d3427;
+  --flame:#f08a4b; --flame-soft:#3a2419; --warn:#e2a24a; --warn-soft:#33281a; color-scheme:dark}
+html,body{background:var(--bg);margin:0}
+body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:env(safe-area-inset-top,0px) calc(40px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.app{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px 10px;border-bottom:1px solid var(--rule)}
+.wordmark{font-family:var(--display);font-weight:800;font-size:26px;letter-spacing:-.01em;font-stretch:112%;background:none;border:0;color:var(--ink);padding:0;cursor:pointer;text-align:left;min-height:0}
+.wordmark b{color:var(--accent);font-weight:900}
+.wordmark small{display:block;font-family:var(--body);font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-stretch:100%}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-weight:700;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.flame{background:var(--flame-soft);color:var(--flame)}
+.chip.ok{background:var(--accent-soft);color:var(--accent)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.flameicon{width:14px;height:16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:30px;font-weight:800;font-stretch:90%}
+h2{font-size:21px;font-weight:750;font-stretch:95%}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+.muted{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+.sheet{background:var(--surface);border:1px solid var(--rule);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.sheet.hero{border-color:var(--accent)}
+.banner{background:var(--warn-soft);color:var(--ink);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:15px}
+.banner.ok{background:var(--accent-soft)}
+button{font:inherit;font-weight:700;border-radius:10px;padding:12px 16px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;min-height:46px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent}
+button.small{min-height:36px;padding:6px 12px;font-size:14px}
+button.link{background:none;border:0;color:var(--accent);padding:4px 0;min-height:0;text-decoration:underline;text-underline-offset:3px;text-align:left}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.full{width:100%}
+a{color:var(--accent)}
+label.field{display:flex;flex-direction:column;gap:6px;font-weight:600}
+.hint{font-weight:400;font-size:14px;color:var(--muted)}
+input,textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:10px;padding:11px 12px;width:100%}
+textarea{min-height:84px;resize:vertical}
+.starter{font-family:var(--display);font-weight:700;font-size:20px;font-stretch:95%}
+.lined{background-image:repeating-linear-gradient(to bottom,transparent 0 31px,var(--rule) 31px 32px);line-height:32px;padding-top:6px;min-height:104px}
+.dots{display:grid;grid-template-columns:repeat(15,1fr);gap:4px}
+.dot{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--rule);max-width:100%}
+.dot.done{background:var(--accent);border-color:var(--accent)}
+.dot.over{background:var(--warn);border-color:var(--warn)}
+.dot.next{border-color:var(--accent);border-style:dashed}
+.wgrid{display:grid;grid-template-columns:52px repeat(7,1fr) 24px;gap:4px;align-items:center;font-size:12px}
+.wgrid .wl{font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.wgrid .hd{text-align:center;color:var(--muted);font-weight:700}
+.wcell{aspect-ratio:1;border-radius:6px;border:1.5px solid var(--rule);max-width:100%}
+.wcell.off{border-style:dotted;opacity:.45}
+.wcell.done{background:var(--accent);border-color:var(--accent)}
+.wcell.over{background:var(--warn);border-color:var(--warn)}
+.wcell.today{border-color:var(--accent);border-style:dashed}
+.wok{color:var(--accent);font-weight:800;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stat{background:var(--bg);border-radius:10px;padding:10px 12px;min-width:0}
+.stat .n{font-family:var(--display);font-weight:800;font-size:26px;font-variant-numeric:tabular-nums;font-stretch:90%;overflow-wrap:anywhere}
+.stat .l{font-size:13px;color:var(--muted)}
+.steps{display:flex;gap:4px}
+.steps span{flex:1;height:4px;border-radius:4px;background:var(--rule)}
+.steps span.on{background:var(--accent)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--rule);border-radius:10px;overflow:hidden}
+.seg button{flex:1 1 30%;border:0;border-radius:0;background:var(--surface);min-height:44px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choices button{min-height:40px;font-weight:600;font-size:15px;border-radius:999px;padding:8px 14px}
+.choices button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.checks label{display:flex;align-items:center;gap:6px;border:1px solid var(--rule);border-radius:999px;padding:6px 12px;font-weight:600;font-size:14px;cursor:pointer}
+.checks input{width:auto;accent-color:var(--accent)}
+.example{background:var(--accent-soft);border-radius:10px;padding:12px;font-size:15px}
+.timer{font-family:var(--mono);font-weight:600;font-size:56px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.meter{height:10px;background:var(--bg);border-radius:10px;overflow:hidden;border:1px solid var(--rule)}
+.meter i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.meter.most i{background:var(--warn)}
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:440px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--bg)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hist{display:flex;flex-direction:column}
+.hist .item{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--rule)}
+.hist .item:last-child{border-bottom:0}
+.gnum{font-family:var(--display);font-weight:800;font-size:20px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cardimg{width:100%;max-width:100%;border-radius:12px;border:1px solid var(--rule);display:block}
+.msg{background:var(--bg);border-radius:10px;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.book{display:grid;grid-template-columns:56px minmax(0,1fr);gap:14px;align-items:center}
+.book .cover{width:56px;aspect-ratio:2/3;border-radius:4px;background:var(--ink);color:var(--bg);font-family:var(--display);font-weight:800;font-size:9px;line-height:1.05;padding:6px 5px;display:flex;align-items:flex-end;letter-spacing:.02em}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:20;max-width:calc(100% - 32px)}
+.tools{border-top:1px dashed var(--rule);padding-top:14px;font-size:14px}
+.footer{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;font-weight:700}
+.footlinks{display:flex;gap:16px;justify-content:center;font-size:14px}
+.welcome h1{font-size:44px;font-stretch:112%}
+.welcome h1 b{color:var(--accent)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+<!--HEAD-END-->
+</head>
+<body>
+<!--BODY-START-->
+<div class="app" id="app"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+(function(){
+"use strict";
+/* ============ SETTINGS YOU CAN CHANGE ============ */
+const CONFIG = {
+  // The app's own web address once it's online (for example "https://yourname.github.io/invest/"). Optional.
+  appUrl: "https://louisapalucci.github.io/",
+  goalsSite: "https://louisapalucci.weebly.com/goals",
+  // Paste your Amazon Attribution links here once the book's Amazon page is live (one per placement).
+  // Until then, "Get the book" opens your Goals page.
+  bookLinks: { home: "", day15: "", tips: "", share: "", settings: "" },
+  // Optional: address of a cookie-free visitor counter. Leave empty to count nothing.
+  analyticsUrl: ""
+};
+/* ================================================= */
+const VERSION = "1.0.0";
+const KEY = "invest-v1";
+const OLD_KEY = "invest-prototype-v1";
+const APP_URL = CONFIG.appUrl || (location.origin + location.pathname.replace(/index\.html$/, ""));
+const $app = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const flameSvg = '<svg class="flameicon" viewBox="0 0 14 16" aria-hidden="true"><path fill="currentColor" d="M7 0c.5 2.6 4.8 4.6 4.8 9.3A4.8 4.8 0 0 1 7 16a4.8 4.8 0 0 1-4.8-4.7c0-2.2 1.3-3.4 2.2-4.3.2 1.4.9 2.3 1.8 2.6C5.6 6.6 6.3 2.8 7 0z"/></svg>';
+
+/* ---------- counting (anonymous, off unless analyticsUrl is set) ---------- */
+function track(event, data){
+  if (!CONFIG.analyticsUrl) return;
+  try { const body = JSON.stringify(Object.assign({e:event, v:VERSION, src:state && state.source || ""}, data||{}));
+    if (navigator.sendBeacon) navigator.sendBeacon(CONFIG.analyticsUrl, body); } catch(e){}
+}
+function bookLink(place){ const l = CONFIG.bookLinks[place]; return l || (CONFIG.goalsSite + "?src=app-" + place); }
+
+/* ---------- dates ---------- */
+let state;
+const pad = n => String(n).padStart(2,"0");
+const fmtISO = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+function now(){ return new Date(Date.now() + ((state && state.settings && state.settings.dayOffset)||0)*864e5); }
+const todayISO = () => fmtISO(now());
+function parseISO(iso){ const [y,m,d] = iso.split("-").map(Number); return new Date(y, m-1, d); }
+function addDays(iso, n){ const d = parseISO(iso); d.setDate(d.getDate()+n); return fmtISO(d); }
+function daysBetween(a, b){ return Math.round((parseISO(b) - parseISO(a)) / 864e5); }
+const dow = iso => parseISO(iso).getDay();
+const sundayOf = iso => addDays(iso, -dow(iso));
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function niceDate(iso){ const d = parseISO(iso); return MONTHS[d.getMonth()]+" "+d.getDate(); }
+function nowTime(){ const d = now(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
+
+/* ---------- storage ---------- */
+let storageOK = true;
+function load(){
+  try { const raw = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY); if (raw) return JSON.parse(raw); } catch(e){ storageOK = false; }
+  return null;
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){ storageOK = false; } }
+function freshState(){ return { goals:[], activeId:null, settings:{streakScope:"all", dayOffset:0, tools:false}, timer:null, onboarded:false, source:"", foundVia:"", lastBackup:null, installDismissed:false }; }
+function normalize(s){
+  const f = freshState(); s = Object.assign(f, s || {}); s.settings = Object.assign(freshState().settings, s.settings || {});
+  s.goals = (s.goals || []).map(g => Object.assign({entries:[], smart:{}, type:"15", status:"active", seriesKey:g.id}, g));
+  if (s.goals.length && s.onboarded === false && !s.source) s.onboarded = true; // came from the prototype
+  return s;
+}
+
+/* ---------- example goals (from the book) ---------- */
+function exampleGoals(){
+  const t = todayISO();
+  const base = { vision:"a reader and lifelong learner.", why:"books can help me grow, think differently, and become a better version of myself.",
+    plan:"reading before bed instead of scrolling on my phone, with my book already waiting on my nightstand.",
+    mode:"least", amount:"10", unit:"minutes", action:"read", sentence:"I will read for at least 10 minutes every night before bed for the next 15 days.",
+    smart:{s:true,m:true,a:true,r:true,t:true}, keepWhere:"on my nightstand, next to my book", doWhen:"every night, right before bed", remindTime:"21:30",
+    person:"", age:"", type:"15", name:"Reading", example:true, seriesKey:"ex-reading" };
+  const g1start = addDays(t,-24), notes1 = ["pp. 1–12","felt sleepy, still did it","pp. 25–40","great chapter","","read 30 min!","pp. 61–70","","","pp. 95–110","","","pp. 140–152","",""];
+  const mins = [12,10,15,11,10,30,12,10,14,20,10,11,16,10,12]; const e1 = []; let d = g1start;
+  for (let i=0;i<15;i++){ if (i===8) d = addDays(d,1); e1.push({date:d, started:"21:4"+(i%6), progress:mins[i]+" minutes", note:notes1[i], met:true}); d = addDays(d,1); }
+  const g1 = Object.assign({}, base, {id:"ex1", num:1, start:g1start, entries:e1, status:"done",
+    reflection:{proud:"I read every night, even the night I felt sleepy. Reading is becoming part of who I am.", decision:"Continue", decisionWhy:"It still fits my vision. I'll keep the same minimum.", future:"yes", inMind:"Running at least once a week."}});
+  const e2 = [[-6,"21:35","10 minutes","started a new book"],[-5,"21:40","15 minutes",""],[-3,"21:50","10 minutes","missed yesterday: late game, forgot"],[-2,"21:30","22 minutes","couldn't put it down"],[-1,"21:45","12 minutes","pp. 88–101"]]
+    .map(([o,s,p,n]) => ({date:addDays(t,o), started:s, progress:p, note:n, met:true}));
+  const g2 = Object.assign({}, base, {id:"ex2", num:3, start:addDays(t,-6), entries:e2, status:"active", reflection:null});
+  const wstart = addDays(t,-12);
+  const g3 = { id:"ex3", num:2, type:"weekly", name:"Running", action:"run", amount:"0.5", unit:"miles", times:"1", mode:"least", sentence:"My weekly goal is to run 0.5 miles at least 1 time a week for the next 5 weeks.",
+    keepWhere:"on my phone's home screen", doWhen:"Saturday mornings", remindTime:"", smart:{}, start:wstart, example:true, seriesKey:"ex-running", status:"paused", reflection:null,
+    entries:[{date:addDays(wstart,1), started:"07:10", progress:"1.5 miles, 15:42", note:"cold but felt good", met:true},{date:addDays(wstart,9), started:"07:05", progress:"2.2 miles, 23:11", note:"", met:true}] };
+  return [g1, g3, g2];
+}
+
+state = normalize(load());
+const params = new URLSearchParams(location.search);
+if (params.get("src") && !state.source){ state.source = params.get("src").slice(0,40); save(); }
+
+/* ---------- goal math ---------- */
+const goal = id => state.goals.find(g => g.id === id);
+const active = () => goal(state.activeId);
+const isWeekly = g => g.type === "weekly";
+const length = g => g.type === "30" ? 30 : 15;
+const firstNum = v => { const m = String(v ?? "").replace(/,/g,"").match(/-?\d+(?:\.\d+)?/); return m ? Number(m[0]) : NaN; };
+const doneCount = g => g.entries.filter(e => e.met).length;
+const totalProgress = g => Math.round(g.entries.reduce((s,e) => { const n = firstNum(e.progress); return s + (isNaN(n) ? 0 : n); }, 0) * 100) / 100;
+function metFor(g, progress){ const v = firstNum(progress), amt = firstNum(g.amount); if (isNaN(v) || isNaN(amt)) return true; return g.mode === "most" ? v <= amt : v >= amt; }
+const progText = (e,g) => /[a-z]/i.test(String(e.progress)) ? String(e.progress) : e.progress+" "+(g.unit||"");
+const missLabel = g => g.mode === "most" ? "over limit" : "under minimum";
+const nextGoalNum = () => state.goals.reduce((m,g) => Math.max(m, g.num||0), 0) + 1;
+const checkedInToday = g => g.entries.some(e => e.date === todayISO());
+const isTimed = g => /^min/i.test(g.unit || "");
+const sortEntries = g => g.entries.sort((a,b) => a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+// weekly
+const W = 5;
+const weekStart = g => sundayOf(g.start);
+const weekEnd = g => addDays(weekStart(g), 7*W - 1);
+const weekIndex = (g, iso) => Math.floor(daysBetween(weekStart(g), iso) / 7);
+function weekTarget(g, w){ const t = Math.max(1, parseInt(g.times,10) || 1); if (w === 0 && dow(g.start) > 0) return Math.max(1, Math.floor(t * (7 - dow(g.start)) / 7)); return t; }
+const weekCount = (g, w) => g.entries.filter(e => e.met && weekIndex(g, e.date) === w).length;
+const weekHonored = (g, w) => weekCount(g, w) >= weekTarget(g, w);
+const currentWeek = g => Math.min(W-1, Math.max(0, weekIndex(g, todayISO())));
+const weeksHonored = g => { let n = 0; for (let w=0; w<W; w++) if (weekHonored(g,w)) n++; return n; };
+function weeklyStreak(g){ let w = currentWeek(g); if (!weekHonored(g,w)) w--; let n = 0; while (w >= 0 && weekHonored(g,w)) { n++; w--; } return n; }
+const weeklyOver = g => todayISO() > weekEnd(g);
+function finishedSheet(g){ return isWeekly(g) ? weeklyOver(g) : g.entries.length >= length(g); }
+// streaks (consecutive days)
+function metDates(goals){ const set = new Set(); goals.forEach(g => g.entries.forEach(e => { if (e.met) set.add(e.date); })); return set; }
+function dayStreak(goals){ const set = metDates(goals); let d = todayISO(); if (!set.has(d)) d = addDays(d,-1); let n = 0; while (set.has(d)) { n++; d = addDays(d,-1); } return n; }
+function longestStreak(){ const dates = [...metDates(state.goals)].sort(); let best = 0, run = 0, prev = null; dates.forEach(d => { run = (prev && addDays(prev,1) === d) ? run+1 : 1; best = Math.max(best, run); prev = d; }); return best; }
+function streakInfo(){
+  const g = active();
+  if (state.settings.streakScope === "goal" && g){ if (isWeekly(g)) { const n = weeklyStreak(g); return {n, unit: n===1?"week":"weeks"}; } const n = dayStreak([g]); return {n, unit:n===1?"day":"days"}; }
+  const n = dayStreak(state.goals); return {n, unit:n===1?"day":"days"};
+}
+function sentenceFor(d){
+  const word = d.mode === "most" ? "at most" : "at least";
+  const act = (d.action || "").trim() || "___";
+  const amt = d.amount ? (d.amount + " " + (d.unit||"")).trim() : "___";
+  if (d.type === "weekly") return "My weekly goal is to " + act + " " + amt + " at least " + (d.times||"___") + " time" + (String(d.times)==="1"?"":"s") + " a week for the next 5 weeks.";
+  const joiner = /^min/i.test(d.unit || "") ? " for " : " ";
+  return "I will " + act + joiner + word + " " + amt + " every day for the next " + length(d) + " days.";
+}
+
+/* ---------- ui helpers ---------- */
+let view = "home", draft = null, step = 0, extra = {}, installEvt = null;
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2800); }
+function go(v, opts){ view = v; extra = opts || {}; render(); window.scrollTo(0,0); }
+function header(){ const s = streakInfo(); return '<header class="top"><button class="wordmark" data-act="home" aria-label="InVEST home">In<b>VEST</b><small>Invest in yourself</small></button><span class="chip flame" title="Streak">'+flameSvg+s.n+' '+s.unit+'</span></header>'; }
+function dotsFor(g){
+  const L = length(g); let h = '<div class="dots" aria-label="'+doneCount(g)+' of '+L+' days completed">';
+  for (let i=0;i<L;i++){ const e = g.entries[i]; const cls = e ? (e.met ? "done" : "over") : (i === g.entries.length ? "next" : ""); h += '<span class="dot '+cls+'"></span>'; }
+  return h + '</div>';
+}
+function weekGridFor(g){
+  const ws = weekStart(g), today = todayISO(); let h = '<div class="wgrid" role="img" aria-label="'+weeksHonored(g)+' of 5 weeks honored"><span></span>'+["S","M","T","W","T","F","S"].map(x=>'<span class="hd">'+x+'</span>').join("")+'<span></span>';
+  for (let w=0; w<W; w++){
+    h += '<span class="wl">Wk '+(w+1)+'</span>';
+    for (let d=0; d<7; d++){ const iso = addDays(ws, w*7+d); const e = g.entries.find(x => x.date === iso);
+      const cls = iso < g.start ? "off" : e ? (e.met ? "done" : "over") : (iso === today ? "today" : ""); h += '<span class="wcell '+cls+'"></span>'; }
+    h += '<span class="wok">'+(weekHonored(g,w)?'✓':'')+'</span>';
+  }
+  return h + '</div>';
+}
+function bookCard(place, line){
+  return '<section class="sheet"><div class="book"><div class="cover" aria-hidden="true">HOW TO SET GOALS AND CONQUER THEM</div><div class="stack" style="gap:6px"><b>'+esc(line)+'</b><span class="hint">How to Set Goals and Conquer Them, by Louis Apalucci</span><a href="'+esc(bookLink(place))+'" target="_blank" rel="noopener" data-track="book-'+place+'">Get the book</a></div></div></section>';
+}
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isStandalone = () => (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true || document.referrer.startsWith("android-app://");
+
+/* ---------- views ---------- */
+function vWelcome(){
+  const opts = [["book","I have the book"],["friend","A friend shared it"],["social","Social media"],["school","School or coach"],["other","Somewhere else"]];
+  return '<section class="welcome stack" style="padding-top:28px"><span class="eyebrow">The companion app to How to Set Goals and Conquer Them</span><h1>In<b>VEST</b></h1>'+
+    '<p style="font-size:19px">Set one clear goal. Show up every day for 15 days. Track it, reflect on it, and keep going.</p>'+
+    '<p class="footer" style="text-align:left">Vision · Effort · Structure · Tracking</p></section>'+
+    '<section class="sheet"><span style="font-weight:600">How did you find InVEST? <span class="hint">Optional</span></span><div class="choices" role="group" aria-label="How did you find InVEST">'+
+    opts.map(([k,l]) => '<button data-act="found" data-v="'+k+'" aria-pressed="'+(state.foundVia===k)+'">'+l+'</button>').join("")+'</div></section>'+
+    '<button class="primary full" data-act="begin">Start my first Goal Sheet</button>'+
+    '<button class="full" data-act="examples">Show me an example first</button>'+
+    '<div class="row" style="justify-content:center"><button class="link" data-act="restore-start">I have a backup to restore</button></div>'+footer();
+}
+function footer(){ return '<p class="footer">Vision · Effort · Structure · Tracking</p><div class="footlinks"><a href="privacy.html">Privacy</a><a href="'+esc(CONFIG.goalsSite)+'" target="_blank" rel="noopener">Printable Goal Sheets</a></div>'; }
+
+function vHome(){
+  const g = active(); let h = header();
+  if (!storageOK) h += '<div class="banner"><span>This browser isn\'t letting InVEST save. Your goals will be lost when you close it. Try another browser or turn off private mode.</span></div>';
+  h += installBanner();
+  if (state.goals.some(x => x.example)) h += '<div class="banner"><span>These are <b>example goals</b> from the book, so you can see the app in use.</span><button class="small" data-act="clear-examples">Clear examples</button></div>';
+  const realGoals = state.goals.filter(x => !x.example);
+  if (realGoals.length && (!state.lastBackup || daysBetween(state.lastBackup, todayISO()) >= 14) && realGoals.some(x => x.entries.length >= 3))
+    h += '<div class="banner"><span>Your goals live only on this phone. Save a backup so you never lose them.</span><button class="small" data-act="settings">Back up</button></div>';
+  if (g) h += isWeekly(g) ? weeklyCard(g) : dailyCard(g);
+  else h += '<section class="sheet"><h2>No goal in progress</h2><p class="muted">Start small. Make it clear. Write it down.</p></section>';
+  h += '<button class="'+(g?'':'primary ')+'full" data-act="new">Start a new Goal Sheet</button>';
+  h += recordSection();
+  if (state.goals.some(x => x.status === "done")) h += bookCard("home", "Go deeper with the full method behind every Goal Sheet.");
+  if (state.settings.tools) h += tools();
+  h += footer();
+  return h;
+}
+function dailyCard(g){
+  const day = g.entries.length + 1, L = length(g), done = checkedInToday(g), fin = finishedSheet(g);
+  let h = '<section class="sheet hero" aria-label="Current goal"><div class="row between"><span class="eyebrow">Goal #'+g.num+' · '+L+'-Day Goal Sheet</span>'+(done?'<span class="chip ok">Done today</span>':'')+'</div>'+
+    '<h1>'+esc(g.name)+'</h1><p>'+esc(g.sentence)+'</p>'+dotsFor(g)+
+    '<div class="stats"><div class="stat"><div class="n">'+doneCount(g)+' <span class="muted" style="font-size:16px">of '+L+'</span></div><div class="l">Days completed</div></div>'+
+    '<div class="stat"><div class="n">'+totalProgress(g)+'</div><div class="l">Total '+esc(g.unit||"progress")+' so far</div></div></div>';
+  if (fin) h += '<button class="primary full" data-act="reflect">Day '+L+' done: reflect on it</button>';
+  else if (done) h += '<button class="full" data-act="share">Share today\'s progress</button><button class="full" data-act="edit-day" data-id="'+g.id+'" data-i="'+g.entries.findIndex(e=>e.date===todayISO())+'">Edit today</button>';
+  else h += '<button class="primary full" data-act="checkin">Check in: Day '+day+'</button>';
+  h += '<div class="row between"><button class="link" data-act="sheet" data-id="'+g.id+'">Track It sheet</button>'+(g.why?'<button class="link" data-act="why">Read my WHY</button>':'')+'</div>';
+  if (extra.why) h += '<div class="example"><b>This matters to me because</b> '+esc(g.why)+'</div>';
+  return h + '</section>';
+}
+function weeklyCard(g){
+  const w = currentWeek(g), done = checkedInToday(g), over = weeklyOver(g), notYet = todayISO() < g.start;
+  let h = '<section class="sheet hero" aria-label="Current goal"><div class="row between"><span class="eyebrow">Goal #'+g.num+' · Weekly Goal Sheet</span>'+(done?'<span class="chip ok">Logged today</span>':'')+'</div>'+
+    '<h1>'+esc(g.name)+'</h1><p>'+esc(g.sentence)+'</p>'+weekGridFor(g)+
+    '<div class="stats"><div class="stat"><div class="n">'+weekCount(g,w)+' <span class="muted" style="font-size:16px">of '+weekTarget(g,w)+'</span></div><div class="l">This week (week '+(w+1)+')'+(w===0&&dow(g.start)>0?', prorated':'')+'</div></div>'+
+    '<div class="stat"><div class="n">'+weeksHonored(g)+' <span class="muted" style="font-size:16px">of 5</span></div><div class="l">Weeks honored</div></div></div>';
+  if (over) h += '<button class="primary full" data-act="reflect">Week 5 done: reflect on it</button>';
+  else if (notYet) h += '<p class="muted">Starts '+niceDate(g.start)+'.</p>';
+  else if (done) h += '<button class="full" data-act="share">Share this week\'s progress</button><button class="full" data-act="edit-day" data-id="'+g.id+'" data-i="'+g.entries.findIndex(e=>e.date===todayISO())+'">Edit today\'s session</button>';
+  else h += '<button class="primary full" data-act="checkin">Log a session today</button>';
+  h += '<div class="row between"><button class="link" data-act="sheet" data-id="'+g.id+'">Weekly sheet</button>'+(!over?'<button class="link" data-act="finish-weekly">Finish early and reflect</button>':'')+'</div>';
+  if (weekHonored(g,w) && !over) h += '<div class="example"><b>Did I honor my commitment this week?</b> Yes. Anything more this week is extra.</div>';
+  return h + '</section>';
+}
+function recordSection(){
+  if (!state.goals.length) return "";
+  const done = state.goals.filter(x => x.status === "done");
+  const series = {}; state.goals.forEach(x => { (series[x.seriesKey] = series[x.seriesKey] || []).push(x); });
+  let most = null; Object.values(series).forEach(list => { if (!most || list.length > most.length) most = list; });
+  let h = '<section class="sheet"><div class="row between"><h2>My record</h2><button class="small" data-act="settings">Settings</button></div>'+
+    '<div class="stats"><div class="stat"><div class="n">'+done.length+'</div><div class="l">Goal Sheets completed</div></div>'+
+    '<div class="stat"><div class="n">'+state.goals.reduce((s,x)=>s+doneCount(x),0)+'</div><div class="l">Days completed, all goals</div></div>'+
+    '<div class="stat"><div class="n">'+longestStreak()+'</div><div class="l">Longest streak (days)</div></div>'+
+    '<div class="stat"><div class="n" style="font-size:20px;padding-block:3px">'+(most&&most.length>1?esc(most[0].name)+' ×'+most.length:'—')+'</div><div class="l">Most repeated goal</div></div></div><div class="hist">';
+  [...state.goals].sort((a,b) => b.num - a.num).forEach(x => {
+    const list = series[x.seriesKey].slice().sort((a,b)=>a.num-b.num), count = list.length, idx = list.indexOf(x)+1;
+    const status = x.status === "active" ? '<span class="chip ok">In progress</span>' : x.status === "paused" ? '<span class="chip warn">Paused</span><button class="small" data-act="resume" data-id="'+x.id+'">Resume</button>' : '<span class="chip warn">'+esc((x.reflection && x.reflection.decision) || "Done")+'</span><button class="small" data-act="repeat" data-id="'+x.id+'">Repeat</button>';
+    const last = x.entries[x.entries.length-1];
+    h += '<div class="item"><span class="gnum">#'+x.num+'</span><div style="min-width:0"><button class="link" style="font-weight:700;padding:0" data-act="sheet" data-id="'+x.id+'">'+esc(x.name)+'</button>'+(count>1?' <span class="muted">· time '+idx+' of '+count+'</span>':'')+
+      '<div class="muted" style="font-size:14px">'+(isWeekly(x)?'Weekly · ':'')+niceDate(x.start)+(last?' – '+niceDate(last.date):'')+' · '+doneCount(x)+(isWeekly(x)?' sessions':' days')+(totalProgress(x)?' · '+totalProgress(x)+' '+esc(x.unit||''):'')+'</div></div>'+
+      '<div class="stack" style="gap:6px;align-items:flex-end">'+status+'</div></div>';
+  });
+  return h + '</div></section>';
+}
+function installBanner(){
+  if (isStandalone() || state.installDismissed) return "";
+  if (installEvt) return '<div class="banner ok"><span>Put InVEST on your home screen so it\'s one tap away, like your Goal Sheet on the fridge.</span><span class="row"><button class="small primary" data-act="install">Install</button><button class="small ghost" data-act="install-dismiss">Not now</button></span></div>';
+  if (isIOS()) return '<div class="banner ok"><span><b>Add InVEST to your home screen:</b> tap the Share button <span aria-hidden="true">(the square with an arrow)</span>, then <b>Add to Home Screen</b>. Your goals stay safer there, too.</span><button class="small ghost" data-act="install-dismiss">Got it</button></div>';
+  return "";
+}
+function tools(){
+  return '<section class="tools stack"><span class="eyebrow">Testing tools</span><p class="muted">Pretend time has passed to test a goal quickly. Today in the app: <b>'+niceDate(todayISO())+'</b>.</p>'+
+    '<div class="row"><button class="small" data-act="day+">Pretend it\'s tomorrow</button><button class="small" data-act="day+7">Skip a week</button><button class="small" data-act="day0">Back to real today</button></div></section>';
+}
+
+/* --- setup wizard --- */
+const STEP_NAMES = ["Start","Vision","WHY","Plan","SMART goal","Make it visible","Review"];
+const stepList = d => d.type === "weekly" ? [0,4,5,6] : [0,1,2,3,4,5,6];
+function newDraft(from){
+  const d = from ? JSON.parse(JSON.stringify(from)) : { type:"15", name:"", person:"", age:"", vision:"", why:"", plan:"", mode:"least", amount:"", unit:"minutes", action:"", times:"3", sentence:"", smart:{}, keepWhere:"", doWhen:"", remindTime:"" };
+  ["id","entries","reflection","status","example"].forEach(k => delete d[k]);
+  d.start = todayISO(); d.num = nextGoalNum(); d.repeatOf = from ? from.seriesKey : null; d.sentenceEdited = !!from; if (!d.smart) d.smart = {};
+  return d;
+}
+const IDEAS = [["15","read for at least 10 minutes"],["15","meditate for at least 10 minutes"],["15","journal for at least 5 minutes before bed"],["15","write down 10 things I am grateful for"],["15","stretch for at least 10 minutes"],["15","walk for at least 20 minutes"],["15","spend at most 30 minutes on social media"],["15","drink 24 ounces of water before coffee"],["15","complete at least 25 push-ups"],["15","practice a new skill for at least 10 minutes"],
+  ["weekly","run|1|miles|1"],["weekly","work out|20|minutes|3"],["weekly","meal prep|1|times|1"],["weekly","go for a family walk|20|minutes|2"],["weekly","save|10|dollars|1"]];
+function vSetup(){
+  const d = draft, list = stepList(d), s = list[step]; let h = header();
+  h += '<div class="stack"><div class="steps">'+list.map((x,i)=>'<span class="'+(i<=step?'on':'')+'"></span>').join("")+'</div>'+
+    '<span class="eyebrow">Step '+(step+1)+' of '+list.length+' · '+STEP_NAMES[s]+(d.repeatOf?' · Repeating a goal':'')+'</span></div><section class="sheet">';
+  if (s === 0){
+    h += '<h2>'+(d.repeatOf?'Repeat this goal':'New Goal Sheet')+'</h2>'+(d.repeatOf?'<p class="muted">Everything from last time is filled in. Change anything you want as you go.</p>':'')+
+      '<div class="stack" style="gap:8px"><span style="font-weight:600">How often?</span><div class="seg" role="group" aria-label="Sheet type">'+
+      '<button data-act="type" data-v="15" aria-pressed="'+(d.type==="15")+'">Daily · 15 days</button><button data-act="type" data-v="30" aria-pressed="'+(d.type==="30")+'">Daily · 30 days</button><button data-act="type" data-v="weekly" aria-pressed="'+(d.type==="weekly")+'">Weekly · 5 weeks</button></div>'+
+      '<p class="hint">'+(d.type==="weekly"?'For goals that don\'t need to happen every day, like running, meal prep, or saving money on payday.':'For goals you can do every single day, even on your most difficult day.')+'</p></div>'+
+      '<label class="field">Goal name<input id="f-name" data-f="name" value="'+esc(d.name)+'" placeholder="'+(d.type==="weekly"?'Running':'Reading')+'"></label>'+
+      '<label class="field">Your name<input id="f-person" data-f="person" value="'+esc(d.person)+'" placeholder="First name" autocomplete="given-name"></label>'+
+      '<label class="field">Start date<input id="f-start" type="date" data-f="start" value="'+esc(d.start)+'"></label>'+
+      (d.type!=="weekly"?'<label class="field">Age <span class="hint">Optional. Along with your start date, your age records when this season of your life happened.</span><input id="f-age" data-f="age" inputmode="numeric" value="'+esc(d.age)+'"></label>':'')+
+      '<p class="muted">This is Goal #'+d.num+'.</p>';
+  } else if (s === 1){
+    h += '<h2>My Vision</h2><p class="muted">Who I AM becoming. Be clear and specific.</p><label class="field"><span class="starter">I am…</span><textarea id="f-vision" class="lined" data-f="vision" placeholder="a reader and lifelong learner.">'+esc(d.vision)+'</textarea></label>'+example("I am a reader and lifelong learner.", 1, "Everything Starts With a Vision");
+  } else if (s === 2){
+    h += '<h2>My WHY</h2><p class="muted">Why does this matter? What do I hope to improve if I follow through?</p><label class="field"><span class="starter">This matters to me because…</span><textarea id="f-why" class="lined" data-f="why">'+esc(d.why)+'</textarea></label>'+example("I want to read every day because I know books can help me grow, think differently, and become a better version of myself.", 2, "Find Your WHY");
+  } else if (s === 3){
+    h += '<h2>My Plan</h2><p class="muted">The routine, system, or approach I will realistically follow.</p><label class="field"><span class="starter">I AM achieving this goal by…</span><textarea id="f-plan" class="lined" data-f="plan">'+esc(d.plan)+'</textarea></label>'+example("I will read before bed instead of scrolling on my phone, with my book already waiting on my nightstand.", 3, "Build Your Plan");
+  } else if (s === 4 && d.type === "weekly"){
+    h += '<h2>My weekly goal</h2><p class="muted">What could you still do every week for the next 5 weeks, even in your busiest week?</p>'+
+      '<label class="field">What will you do?<input id="f-action" data-f="action" value="'+esc(d.action)+'" placeholder="run"></label>'+
+      '<div class="row" style="flex-wrap:nowrap"><label class="field" style="flex:1">Minimum each time<input id="f-amount" data-f="amount" inputmode="decimal" value="'+esc(d.amount)+'" placeholder="0.5"></label>'+
+      '<label class="field" style="flex:1.3">Measured in'+unitInput(d)+'</label></div>'+
+      '<label class="field">At least how many times a week?<input id="f-times" data-f="times" type="number" min="1" max="7" inputmode="numeric" value="'+esc(d.times)+'"></label>'+
+      '<label class="field"><span class="starter">My weekly goal is…</span><span class="hint">Write it in your own words. We started it for you.</span><textarea id="f-sentence" data-f="sentence">'+esc(d.sentenceEdited ? d.sentence : sentenceFor(d))+'</textarea></label>'+
+      (dow(d.start) > 0 ? '<p class="hint">You\'re starting mid-week, so week 1 is prorated: aim for at least '+weekTarget(d,0)+' this week, then the full amount each week after.</p>' : '')+
+      ideas(d)+example("My weekly goal is to run 0.5 miles at least 1 time a week for the next 5 weeks.", null, "The Weekly Goal Sheet");
+  } else if (s === 4){
+    h += '<h2>My SMART Goal & Realistic Minimum</h2><p class="muted">What will I still be able to do every single day for the next '+length(d)+' days, even on my most difficult day?</p>'+
+      '<div class="seg" role="group" aria-label="Daily commitment"><button data-act="mode" data-v="least" aria-pressed="'+(d.mode==="least")+'">At least · build a habit</button><button data-act="mode" data-v="most" aria-pressed="'+(d.mode==="most")+'">At most · set a limit</button></div>'+
+      '<label class="field">What will you do?<input id="f-action" data-f="action" value="'+esc(d.action)+'" placeholder="read"></label>'+
+      '<div class="row" style="flex-wrap:nowrap"><label class="field" style="flex:1">Amount<input id="f-amount" data-f="amount" inputmode="decimal" value="'+esc(d.amount)+'" placeholder="10"></label>'+
+      '<label class="field" style="flex:1.3">Measured in'+unitInput(d)+'</label></div>'+
+      '<label class="field"><span class="starter">I will…</span><span class="hint">Write it in your own words. We started it for you.</span><textarea id="f-sentence" data-f="sentence">'+esc(d.sentenceEdited ? d.sentence : sentenceFor(d))+'</textarea></label>'+
+      '<div class="stack" style="gap:8px"><span style="font-weight:600">Check it</span><div class="checks">'+[["s","Specific"],["m","Measurable"],["a","Achievable"],["r","Relevant"],["t","Time-bound"]].map(([k,l])=>'<label><input type="checkbox" id="f-smart-'+k+'" data-smart="'+k+'"'+(d.smart[k]?' checked':'')+'>'+l+'</label>').join("")+'</div></div>'+
+      ideas(d)+example("I will read for at least 10 minutes every day for the next 15 days.", 4, "Be SMART About Your Goals");
+  } else if (s === 5){
+    h += '<h2>Make it visible</h2><p class="muted">A goal on paper is much harder to ignore. Put InVEST on your home screen, and attach your goal to something you already do.</p>'+
+      '<label class="field"><span class="starter">I will keep this sheet…</span><span class="hint">Somewhere I will see it every day</span><input id="f-keep" data-f="keepWhere" value="'+esc(d.keepWhere)+'" placeholder="on my home screen, first page"></label>'+
+      '<label class="field"><span class="starter">I will do it…</span><span class="hint">A time or routine I already have</span><input id="f-when" data-f="doWhen" value="'+esc(d.doWhen)+'" placeholder="'+(d.type==="weekly"?'Saturday mornings':'every night, right before bed')+'"></label>'+
+      '<label class="field">Reminder time <span class="hint">Optional. After you start, you can add a repeating reminder to your phone\'s calendar.</span><input id="f-remind" type="time" data-f="remindTime" value="'+esc(d.remindTime)+'"></label>';
+  } else {
+    h += '<h2>Your Goal Sheet</h2><div class="stack" style="gap:10px">'+rv(d.type==="weekly"?"Weekly Goal":(length(d)+"-Day Goal"), d.name)+
+      (d.type==="weekly"?'':rv("I am",d.vision)+rv("This matters to me because",d.why)+rv("I AM achieving this goal by",d.plan))+
+      rv(d.type==="weekly"?"My weekly goal":"My SMART goal", d.sentenceEdited ? d.sentence : sentenceFor(d))+rv("I will keep this sheet",d.keepWhere)+rv("I will do it",d.doWhen)+'</div>';
+  }
+  h += '</section>';
+  const missing = setupMissing();
+  h += '<p class="hint" role="status" id="missing"'+(missing?'':' hidden')+'>'+esc(missing)+'</p>';
+  h += '<div class="row" style="flex-wrap:nowrap"><button class="full" data-act="'+(step===0?'cancel-setup':'back')+'">'+(step===0?'Cancel':'Back')+'</button>'+
+    '<button class="primary full" data-act="'+(step===list.length-1?'start':'next')+'"'+(missing?' disabled':'')+'>'+(step===list.length-1?(d.type==="weekly"?'Start week 1':'Start Day 1'):'Next')+'</button></div>';
+  return h;
+}
+function unitInput(d){ return '<input id="f-unit" data-f="unit" list="unitlist" value="'+esc(d.unit)+'" placeholder="minutes, miles…"><datalist id="unitlist">'+["minutes","times","pages","push-ups","miles","dollars","ounces","items","sets","chapters","glasses"].map(u=>'<option value="'+u+'"></option>').join("")+'</datalist>'; }
+function ideas(d){
+  const list = IDEAS.filter(([t]) => (t === "weekly") === (d.type === "weekly"));
+  return '<button class="link" data-act="ideas">'+(extra.ideas?'Hide ideas':'Need ideas? See sample goals from the book')+'</button>'+
+    (extra.ideas?'<div class="stack" style="gap:6px">'+list.map(([t,v])=>{ const label = t==="weekly" ? v.split("|").reduce((a,x,i)=> i===0?x:i===1?a+" "+x:i===2?a+" "+x:a+", "+x+"x a week","") : v; return '<button class="small" style="text-align:left" data-act="idea" data-v="'+esc(v)+'">'+esc(label)+'</button>'; }).join("")+'</div>':'');
+}
+function example(text, chapter, title){
+  const more = '<a href="'+esc(bookLink("tips"))+'" target="_blank" rel="noopener" data-track="book-tips">'+(chapter?'Chapter '+chapter+': ':'')+esc(title)+'</a>';
+  return extra.example ? '<div class="example stack" style="gap:6px"><span><b>Example from the book:</b> '+esc(text)+'</span><span class="hint">More in '+more+'</span></div><button class="link" data-act="example">Hide example</button>' : '<button class="link" data-act="example">Show me an example</button>';
+}
+function rv(label, val){ return '<div><div class="eyebrow">'+esc(label)+'</div><div>'+(val?esc(val):'<span class="muted">Not filled in</span>')+'</div></div>'; }
+function setupMissing(){
+  const d = draft, s = stepList(d)[step];
+  if (s===0 && !d.name.trim()) return "Give your goal a short name, like "+(d.type==="weekly"?"Running.":"Reading.");
+  if (s===0 && !d.start) return "Pick a start date.";
+  if (s===1 && !d.vision.trim()) return "Finish the sentence “I am…”. Tap “Show me an example” if you’re stuck.";
+  if (s===2 && !d.why.trim()) return "Finish “This matters to me because…”. Your WHY keeps you going when motivation fades.";
+  if (s===3 && !d.plan.trim()) return "Finish “I AM achieving this goal by…” with the routine you'll actually follow.";
+  if (s===4 && (!d.action.trim() || !String(d.amount).trim())) return "Add what you'll do and your realistic minimum, like "+(d.type==="weekly"?"run · 0.5 miles.":"read · 10 minutes.");
+  if (s===4 && d.type==="weekly" && !(parseInt(d.times,10) >= 1 && parseInt(d.times,10) <= 7)) return "Choose how many times a week, from 1 to 7.";
+  if (s===5 && !d.doWhen.trim()) return "Attach your goal to a time or routine you already have.";
+  return "";
+}
+
+/* --- check-in & timer --- */
+function vCheckin(){
+  const g = active(); const weekly = isWeekly(g); const L = length(g); let h = header();
+  const t = state.timer && state.timer.goalId === g.id ? state.timer : null;
+  const label = weekly ? 'Week '+(currentWeek(g)+1)+' · session '+(weekCount(g,currentWeek(g))+1) : 'Day '+(g.entries.length+1)+' of '+L;
+  h += '<section class="sheet"><span class="eyebrow">Goal #'+g.num+' · '+label+' · '+niceDate(todayISO())+'</span><h1>'+esc(g.name)+'</h1><p>'+esc(g.sentence)+'</p>';
+  if (isTimed(g)){
+    const minimum = firstNum(g.amount)||0, most = g.mode === "most", ms = t ? timerElapsed(t) : 0;
+    const shown = most ? Math.max(0, minimum*60000 - ms) : ms, pct = minimum ? Math.min(100, ms/60000/minimum*100) : 0;
+    h += '<div class="stack" style="gap:10px"><div class="timer" id="clock">'+clock(shown)+'</div>'+
+      '<p class="muted" style="text-align:center" id="clockcap">'+(most?'time left of your '+minimum+'-minute limit':(t && ms >= minimum*60000?'Minimum reached. Keep going if you want.':'your minimum is '+minimum+' minutes'))+'</p>'+
+      '<div class="meter'+(most?' most':'')+'"><i id="meter" style="width:'+pct+'%"></i></div>';
+    if (!t) h += '<button class="primary full" data-act="t-start">Start timer</button>';
+    else h += '<div class="row" style="flex-wrap:nowrap">'+(t.pausedAt?'<button class="full" data-act="t-resume">Resume</button>':'<button class="full" data-act="t-pause">Pause</button>')+'<button class="primary full" data-act="t-stop">Stop and log it</button></div>';
+    h += '<p class="hint" style="text-align:center">Keep InVEST open to hear the chime. The timer stays accurate if you lock your phone.</p></div>';
+  }
+  h += '<label class="field">Time started<input id="c-started" type="time" value="'+esc(extra.started || (t?t.startedLabel:nowTime()))+'"></label>'+
+    '<label class="field">Track your progress <span class="hint">Time, repetitions, or effort, written your way: “12 minutes”, “2.1 miles, 21:00”, “3 sets of 20”. Your goal: '+(g.mode==="most"?'at most ':'at least ')+esc(g.amount)+' '+esc(g.unit)+'.</span><input id="c-progress" value="'+esc(extra.logged || "")+'" placeholder="'+esc(g.amount+' '+g.unit)+'"></label>'+
+    '<label class="field">Quick notes or reflections <span class="hint">How you feel, what you noticed. Anything goes.</span><textarea id="c-note" style="min-height:64px">'+esc(extra.note||"")+'</textarea></label>';
+  const last = g.entries[g.entries.length-1];
+  if (!weekly && last && last.date < addDays(todayISO(),-1)) h += '<div class="example"><b>Missed a day? That’s information, not failure.</b> Today becomes Day '+(g.entries.length+1)+', so you still finish all '+L+' days. Add a few words in your note about what happened. Did your goal but forgot to log it? Add it from the Track It sheet instead.</div>';
+  h += '<button class="primary full" data-act="save-checkin">'+(weekly?'Save this session':'Save Day '+(g.entries.length+1))+'</button><button class="ghost full" data-act="home">Not now</button></section>';
+  return h;
+}
+function timerElapsed(t){ const end = t.pausedAt || Date.now(); return Math.max(0, end - t.startTs - (t.pausedTotal||0)); }
+function clock(ms){ const s = Math.floor(ms/1000), m = Math.floor(s/60); return (m>=60? Math.floor(m/60)+":"+pad(m%60) : pad(m))+":"+pad(s%60); }
+let audioCtx = null, ticker = null;
+function chime(){ try { if (!audioCtx) return; [0,0.18].forEach((dt,i) => { const o = audioCtx.createOscillator(), gn = audioCtx.createGain(); o.frequency.value = i? 1046 : 784; gn.gain.setValueAtTime(0.0001, audioCtx.currentTime+dt); gn.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime+dt+0.02); gn.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dt+0.6); o.connect(gn).connect(audioCtx.destination); o.start(audioCtx.currentTime+dt); o.stop(audioCtx.currentTime+dt+0.65); }); if (navigator.vibrate) navigator.vibrate([120,80,120]); } catch(e){} }
+function tick(){
+  const g = active(), t = state.timer, el = document.getElementById("clock");
+  if (!g || !t || !el || view !== "checkin") return;
+  const minimum = firstNum(g.amount)||0, ms = timerElapsed(t), most = g.mode === "most";
+  el.textContent = clock(most ? Math.max(0, minimum*60000 - ms) : ms);
+  const m = document.getElementById("meter"); if (m) m.style.width = Math.min(100, minimum ? ms/60000/minimum*100 : 0) + "%";
+  if (!t.chimed && minimum && ms >= minimum*60000){ t.chimed = true; save(); chime();
+    const cap = document.getElementById("clockcap"); if (cap) cap.textContent = most ? "You've reached your limit for today." : "Minimum reached. Keep going if you want."; }
+}
+
+/* --- track it sheet --- */
+function vSheet(){
+  const g = goal(extra.id) || active(); let h = header();
+  if (!g) return vHome();
+  const weekly = isWeekly(g), L = length(g);
+  h += '<section class="sheet"><span class="eyebrow">Goal #'+g.num+' · '+(weekly?'Weekly Goal Sheet':'Track It')+'</span><h1>'+esc(g.name)+'</h1><p class="muted">'+esc(g.sentence)+'</p>';
+  if (!weekly && g.vision) h += '<details><summary style="font-weight:700;cursor:pointer">My Vision, WHY, and Plan</summary><div class="stack" style="gap:10px;margin-top:10px">'+rv("I am",g.vision)+rv("This matters to me because",g.why)+rv("I AM achieving this goal by",g.plan)+rv("I will keep this sheet",g.keepWhere)+rv("I will do it",g.doWhen)+'</div></details>';
+  if (weekly) h += weekGridFor(g);
+  h += '<p class="hint">Tap Edit to change any '+(weekly?'session':'day')+', including today.</p><div class="tablewrap"><table><thead><tr><th>'+(weekly?'Week':'Day')+'</th><th>Date</th><th>Started</th><th>Progress</th><th>Notes</th><th></th></tr></thead><tbody>';
+  const rows = weekly ? g.entries.length : Math.max(L, g.entries.length);
+  for (let i=0;i<rows;i++){ const e = g.entries[i];
+    h += '<tr><td class="num">'+(weekly?(weekIndex(g,e.date)+1):(i+1))+'</td><td class="num">'+(e?niceDate(e.date):'')+'</td><td class="num">'+(e?esc(e.started):'')+'</td><td>'+(e?esc(e.progress)+(e.met?'':' <span class="chip warn">'+missLabel(g)+'</span>'):'')+'</td><td>'+(e?esc(e.note):'')+'</td><td>'+(e?'<button class="small" data-act="edit-day" data-id="'+g.id+'" data-i="'+i+'" aria-label="Edit '+niceDate(e.date)+'">Edit</button>':'')+'</td></tr>'; }
+  if (weekly && !g.entries.length) h += '<tr><td colspan="6" class="muted">No sessions yet.</td></tr>';
+  h += '</tbody></table></div>';
+  if (weekly || g.entries.length < L) h += '<button class="full" data-act="edit-day" data-id="'+g.id+'" data-i="-1">Add a '+(weekly?'session':'day')+' I forgot to log</button>';
+  h += '<p><b>'+(weekly?'After 5 weeks':'After '+L+' days')+', my total progress was</b> '+totalProgress(g)+' '+esc(g.unit)+(finishedSheet(g)?'':' <span class="muted">(so far)</span>')+'.</p>';
+  const prev = state.goals.filter(x => x.seriesKey === g.seriesKey && x.num < g.num && x.status === "done").sort((a,b)=>b.num-a.num)[0];
+  if (prev) h += '<p class="muted">Last time (Goal #'+prev.num+'): '+totalProgress(prev)+' '+esc(prev.unit)+' over '+doneCount(prev)+(isWeekly(prev)?' sessions':' days')+'.</p>';
+  if (g.reflection){ const r = g.reflection;
+    h += '<div class="stack" style="gap:10px"><h2>Reflect on It</h2>'+(r.proud?rv("I AM proud that I completed this goal because",r.proud):'')+rv("Do I plan to continue? ("+r.decision+")",r.decisionWhy)+(r.future?rv("Will I set similar measurable goals?",r.future==="yes"?"Yes":"No"):'')+(r.inMind?rv("Goals I have in mind",r.inMind):'')+'</div>'; }
+  h += '<div class="row" style="flex-wrap:nowrap"><button class="full" data-act="home">Back</button>'+(g.status!=="active"&&!g.example?'<button class="full ghost" data-act="delete-goal" data-id="'+g.id+'">Delete goal</button>':'')+'</div>';
+  if (extra.confirmDeleteGoal) h += '<div class="banner"><span>Delete Goal #'+g.num+' and all its days? This can\'t be undone.</span><span class="row"><button class="small" data-act="delete-goal-yes" data-id="'+g.id+'">Delete</button><button class="small" data-act="sheet" data-id="'+g.id+'">Keep</button></span></div>';
+  return h + '</section>';
+}
+
+/* --- edit a day --- */
+function vEdit(){
+  const g = goal(extra.id); const i = Number(extra.i); const isNew = i < 0; const e = isNew ? {date:"", started:"", progress:"", note:""} : g.entries[i];
+  const weekly = isWeekly(g), word = weekly ? "session" : "day";
+  let h = header();
+  h += '<section class="sheet"><span class="eyebrow">Goal #'+g.num+' · '+esc(g.name)+'</span><h2>'+(isNew?'Add a '+word+' you forgot to log':(weekly?'Edit session on '+niceDate(e.date):'Edit Day '+(i+1)))+'</h2>'+
+    (isNew?'<p class="muted">Did your goal but forgot to log it? Add it here, and it takes its place in order.</p>':'')+
+    '<label class="field">Date<input id="e-date" type="date" min="'+esc(weekly?weekStart(g):'')+'" max="'+todayISO()+'" value="'+esc(e.date)+'"></label>'+
+    '<label class="field">Time started<input id="e-started" type="time" value="'+esc(e.started)+'"></label>'+
+    '<label class="field">Track your progress <span class="hint">Your goal: '+(g.mode==="most"?'at most ':'at least ')+esc(g.amount)+' '+esc(g.unit)+'</span><input id="e-progress" value="'+esc(e.progress)+'" placeholder="'+esc(g.amount+' '+g.unit)+'"></label>'+
+    '<label class="field">Quick notes or reflections<textarea id="e-note" style="min-height:64px">'+esc(e.note)+'</textarea></label>'+
+    '<button class="primary full" data-act="save-day">'+(isNew?'Add this '+word:'Save changes')+'</button>';
+  if (!isNew) h += extra.confirmDelete
+    ? '<div class="banner"><span>Remove this '+word+'?'+(weekly?'':' The days after it move up one.')+'</span><span class="row"><button class="small" data-act="delete-day-yes">Remove</button><button class="small" data-act="delete-day-no">Keep</button></span></div>'
+    : '<button class="ghost full" data-act="delete-day">Remove this '+word+'</button>';
+  return h + '<button class="ghost full" data-act="back-sheet">Cancel</button></section>';
+}
+
+/* --- reflection --- */
+function vReflect(){
+  const g = active(); const weekly = isWeekly(g), L = length(g);
+  const r = extra.r || (extra.r = {proud:"",decision:"",decisionWhy:"",future:"",inMind:""}); let h = header();
+  h += '<section class="sheet"><span class="eyebrow">Goal #'+g.num+' · Reflect on It</span><h1>You finished '+esc(g.name)+'</h1>'+
+    '<div class="stats">'+(weekly?'<div class="stat"><div class="n">'+weeksHonored(g)+'/5</div><div class="l">Weeks honored</div></div>':'<div class="stat"><div class="n">'+doneCount(g)+'/'+L+'</div><div class="l">Days completed</div></div>')+'<div class="stat"><div class="n">'+totalProgress(g)+'</div><div class="l">Total '+esc(g.unit)+'</div></div></div>'+
+    '<p class="muted">What worked? What got in the way? What did I notice? Did this goal move me toward my vision?</p>'+
+    '<label class="field"><span class="starter">I AM proud that I completed this goal because…</span>'+(weekly?'<span class="hint">Optional for weekly goals. You can just think it through.</span>':'')+'<textarea id="r-proud" class="lined" data-r="proud">'+esc(r.proud)+'</textarea></label>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">Do I plan to continue this goal?</span><div class="seg" role="group" aria-label="Decision">'+["Continue","Adjust","Pause","Pivot"].map(x=>'<button data-act="decide" data-v="'+x+'" aria-pressed="'+(r.decision===x)+'">'+x+'</button>').join("")+'</div></div>'+
+    '<label class="field">Why or why not?<textarea id="r-why" data-r="decisionWhy">'+esc(r.decisionWhy)+'</textarea></label>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">Will I set similar measurable goals in the future?</span><div class="seg" role="group" aria-label="Future goals"><button data-act="future" data-v="yes" aria-pressed="'+(r.future==="yes")+'">Yes</button><button data-act="future" data-v="no" aria-pressed="'+(r.future==="no")+'">No</button></div></div>'+
+    (r.future==="yes"?'<label class="field">If yes, do you have any in mind right now?<input id="r-mind" data-r="inMind" value="'+esc(r.inMind)+'"></label>':'')+
+    '<button class="primary full" data-act="save-reflect"'+(reflectReady(g, r)?'':' disabled')+'>Save my reflection</button></section>';
+  return h + bookCard("day15", "Ready for your next goal? The book walks through every step in depth.");
+}
+const reflectReady = (g, r) => !!r.decision && (isWeekly(g) || !!r.proud.trim());
+
+/* --- share --- */
+function shareText(g){
+  const e = g.entries[g.entries.length-1], s = streakInfo();
+  const where = isWeekly(g) ? "Week "+(currentWeek(g)+1)+" of 5: "+weekCount(g,currentWeek(g))+" of "+weekTarget(g,currentWeek(g))+" sessions" : "Day "+g.entries.length+" of "+length(g)+" done";
+  return where+": "+(g.action||g.name)+(e?" ("+progText(e,g)+")":"")+". "+(s.n>1?s.n+"-"+s.unit.replace(/s$/,"")+" streak. ":"")+"How's your goal going?\n\nTracking it with InVEST: "+APP_URL+"?src=share";
+}
+function vShare(){
+  const g = active(); let h = header();
+  h += '<section class="sheet"><span class="eyebrow">Share your progress</span><h2>Your progress card</h2><img class="cardimg" id="cardimg" alt="Progress card for '+esc(g.name)+'"><div class="row" style="flex-wrap:nowrap"><button class="primary full" data-act="share-card">Share card</button></div><p class="hint">Post it to Instagram Stories, Facebook, or anywhere. If the Share button doesn\'t work on your phone, press and hold the card to save it.</p>'+
+    '<h2>"Done for today" message</h2><div class="msg" id="msgtext">'+esc(shareText(g))+'</div><div class="row" style="flex-wrap:nowrap"><button class="primary full" data-act="share-msg">Send to a partner</button><button class="full" data-act="copy-msg">Copy</button></div><p class="hint">Send it to your accountability partner, even if their goal is different.</p>'+
+    '<button class="full" data-act="home">Done</button></section>';
+  setTimeout(() => drawCard(g), 0);
+  return h;
+}
+let cardBlob = null;
+function drawCard(g){
+  const img = document.getElementById("cardimg"); if (!img) return;
+  const c = document.createElement("canvas"); c.width = 1080; c.height = 1350; const x = c.getContext("2d"); const s = streakInfo(); const weekly = isWeekly(g);
+  const paint = () => {
+    x.fillStyle = "#16211b"; x.fillRect(0,0,1080,1350); x.fillStyle = "#4fbf85"; x.fillRect(0,0,1080,14);
+    x.fillStyle = "#e6ece7"; x.font = "800 64px Archivo, 'Arial Narrow', sans-serif"; x.fillText("In", 80, 150); const w = x.measureText("In").width;
+    x.fillStyle = "#4fbf85"; x.font = "900 64px Archivo, 'Arial Narrow', sans-serif"; x.fillText("VEST", 80+w, 150);
+    x.fillStyle = "#9aaba0"; x.font = "600 28px 'Source Sans 3', sans-serif"; x.fillText("GOAL #"+g.num+"  ·  "+(weekly?"WEEKLY":length(g)+"-DAY")+" GOAL SHEET", 80, 250);
+    x.fillStyle = "#e6ece7"; x.font = "800 120px Archivo, 'Arial Narrow', sans-serif"; x.fillText(String(g.name).slice(0,14), 80, 390);
+    const big = weekly ? String(weeksHonored(g)) : String(g.entries.length), small = weekly ? "of 5 weeks honored" : "of "+length(g)+" days";
+    x.fillStyle = "#4fbf85"; x.font = "800 220px Archivo, 'Arial Narrow', sans-serif"; x.fillText(big, 80, 650);
+    const nw = x.measureText(big).width; x.fillStyle = "#9aaba0"; x.font = "700 60px Archivo, 'Arial Narrow', sans-serif"; x.fillText(small, 100+nw, 650);
+    if (!weekly){ const L = length(g), size = 50, gap = 12; for (let i=0;i<L;i++){ const cx = 80 + (i%15)*(size+gap) + size/2, cy = 740 + Math.floor(i/15)*(size+gap) + size/2; x.beginPath(); x.arc(cx,cy,size/2-3,0,Math.PI*2); const e = g.entries[i]; if (e){ x.fillStyle = e.met ? "#4fbf85" : "#e2a24a"; x.fill(); } else { x.strokeStyle = "#2c3830"; x.lineWidth = 4; x.stroke(); } } }
+    else { for (let w2=0; w2<5; w2++){ x.beginPath(); const cx = 80 + w2*120 + 50; x.arc(cx, 790, 46, 0, Math.PI*2); if (weekHonored(g,w2)){ x.fillStyle = "#4fbf85"; x.fill(); } else { x.strokeStyle = "#2c3830"; x.lineWidth = 4; x.stroke(); } } }
+    x.fillStyle = "#f08a4b"; x.font = "800 72px Archivo, 'Arial Narrow', sans-serif"; if (s.n > 1) x.fillText(s.n+"-"+s.unit.replace(/s$/,"")+" streak", 80, 1000); else x.fillText(weekly ? "Showing up weekly" : "Day "+g.entries.length+": showing up", 80, 1000);
+    x.fillStyle = "#e6ece7"; x.font = "400 40px 'Source Sans 3', sans-serif"; wrap(x, g.sentence, 80, 1090, 920, 52);
+    x.fillStyle = "#9aaba0"; x.font = "700 26px 'Source Sans 3', sans-serif"; x.fillText("VISION · EFFORT · STRUCTURE · TRACKING", 80, 1260);
+    x.fillStyle = "#4fbf85"; x.font = "600 30px 'Source Sans 3', sans-serif"; x.fillText(APP_URL.replace(/^https?:\/\//,"").replace(/\/$/,""), 80, 1305);
+    try { img.src = c.toDataURL("image/png"); c.toBlob(b => { cardBlob = b; }, "image/png"); } catch(e){}
+  };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(paint, paint);
+}
+function wrap(x, text, X, Y, max, lh){ const words = String(text).split(" "); let line = "", y = Y, lines = 0; for (const w of words){ const test = line ? line+" "+w : w; if (x.measureText(test).width > max && line){ x.fillText(line, X, y); y += lh; line = w; if (++lines >= 3) return; } else line = test; } x.fillText(line, X, y); }
+
+/* --- settings --- */
+function vSettings(){
+  let h = header();
+  h += '<section class="sheet"><h2>Settings</h2>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">What should my streak count?</span><div class="seg" role="group" aria-label="Streak"><button data-act="scope" data-v="goal" aria-pressed="'+(state.settings.streakScope==="goal")+'">This Goal Sheet</button><button data-act="scope" data-v="all" aria-pressed="'+(state.settings.streakScope==="all")+'">All my goals</button></div><p class="hint">Consecutive days with a completed check-in (weeks, for a weekly goal). Days Completed never goes down, even after a miss.</p></div>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">Daily reminder</span><p class="hint">Add a repeating event to your phone\'s calendar at your reminder time. Your calendar app will remind you.</p><button data-act="calendar"'+(active()&&active().remindTime?'':' disabled')+'>Add reminder to my calendar</button>'+(active()&&active().remindTime?'':'<p class="hint">Set a reminder time when you create a goal to use this.</p>')+'</div>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">Back up my goals</span><p class="hint">Your goals are saved on this phone only. Save a backup file and keep it somewhere safe, like your email or Google Drive.'+(state.lastBackup?' Last backup: '+niceDate(state.lastBackup)+'.':'')+'</p><div class="row" style="flex-wrap:nowrap"><button class="full primary" data-act="backup-file">Save backup file</button><button class="full" data-act="copy-backup">Copy as text</button></div></div>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">Restore from a backup</span><p class="hint">This replaces the goals on this phone with the ones in the backup.</p><input type="file" id="restore-file" accept=".json,application/json,text/plain"><textarea id="restore-text" placeholder="Or paste backup text here" style="min-height:70px;font-family:var(--mono);font-size:12px"></textarea><button data-act="restore">Restore</button>'+
+    (extra.restoreReady?'<div class="banner"><span>Replace your current goals with '+extra.restoreReady.goals.length+' goal'+(extra.restoreReady.goals.length===1?'':'s')+' from the backup?</span><span class="row"><button class="small" data-act="restore-yes">Replace</button><button class="small" data-act="settings">Cancel</button></span></div>':'')+'</div>'+
+    '<div class="stack" style="gap:8px"><span style="font-weight:600">The book</span>'+'<a href="'+esc(bookLink("settings"))+'" target="_blank" rel="noopener" data-track="book-settings">How to Set Goals and Conquer Them</a></div>'+
+    '<div class="checks"><label><input type="checkbox" id="tools-toggle" data-setting="tools"'+(state.settings.tools?' checked':'')+'> Show testing tools</label></div>'+
+    '<button class="full" data-act="home">Back</button></section><p class="hint" style="text-align:center">InVEST version '+VERSION+'</p>'+footer();
+  return h;
+}
+
+/* ---------- render & events ---------- */
+function render(){
+  if (!state.onboarded) { $app.innerHTML = vWelcome(); return; }
+  const views = {home:vHome, setup:vSetup, checkin:vCheckin, sheet:vSheet, reflect:vReflect, share:vShare, settings:vSettings, edit:vEdit};
+  if ((view === "checkin" || view === "reflect" || view === "share") && !active()) view = "home";
+  if (view === "edit" && !goal(extra.id)) view = "home";
+  if (view === "setup" && !draft) view = "home";
+  $app.innerHTML = (views[view] || vHome)();
+  clearInterval(ticker); if (view === "checkin" && state.timer && !state.timer.pausedAt) ticker = setInterval(tick, 250);
+}
+function refreshSentence(){ if (draft && !draft.sentenceEdited){ const s = document.getElementById("f-sentence"); if (s) s.value = sentenceFor(draft); } }
+function refreshNext(){ const b = document.querySelector('[data-act="next"],[data-act="start"]'); if (!b) return; const m = setupMissing(); b.disabled = !!m; const p = document.getElementById("missing"); if (p){ p.textContent = m; p.hidden = !m; } }
+$app.addEventListener("input", ev => {
+  const el = ev.target;
+  if (el.dataset.f && draft){ draft[el.dataset.f] = el.value; if (el.dataset.f === "sentence") draft.sentenceEdited = true; if (["action","amount","unit","times"].includes(el.dataset.f)) refreshSentence(); refreshNext(); }
+  if (el.dataset.r && extra.r){ extra.r[el.dataset.r] = el.value; const b = document.querySelector('[data-act="save-reflect"]'); if (b) b.disabled = !reflectReady(active(), extra.r); }
+});
+$app.addEventListener("change", ev => {
+  const el = ev.target;
+  if (el.dataset.smart && draft) draft.smart[el.dataset.smart] = el.checked;
+  if (el.dataset.f === "start" && draft && draft.type === "weekly") render();
+  if (el.dataset.setting === "tools"){ state.settings.tools = el.checked; if (!el.checked) state.settings.dayOffset = 0; save(); }
+  if (el.id === "restore-file" && el.files && el.files[0]){ const r = new FileReader(); r.onload = () => { const ta = document.getElementById("restore-text"); if (ta) ta.value = String(r.result); }; r.readAsText(el.files[0]); }
+});
+function keepCheckinFields(){ extra.started = document.getElementById("c-started")?.value; extra.note = document.getElementById("c-note")?.value; const p = document.getElementById("c-progress")?.value; if (p) extra.logged = p; }
+function download(name, text, type){ try { const url = URL.createObjectURL(new Blob([text], {type})); const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000); return true; } catch(e){ return false; } }
+function icsFor(g){
+  const [hh, mm] = (g.remindTime||"20:00").split(":"); const start = todayISO().replace(/-/g,"") + "T" + hh + mm + "00";
+  const rule = isWeekly(g) ? "FREQ=WEEKLY;COUNT=5" : "FREQ=DAILY;COUNT=" + length(g);
+  return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//InVEST//Goal Sheets//EN","BEGIN:VEVENT","UID:"+g.id+"@invest","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").slice(0,15)+"Z","DTSTART:"+start,"DURATION:PT15M","RRULE:"+rule,
+    "SUMMARY:InVEST: "+String(g.name).replace(/[,;\n]/g," "),"DESCRIPTION:"+String(g.sentence).replace(/[,;\n]/g," ")+" Check in at "+APP_URL,"BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:Time for your goal","TRIGGER:PT0M","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+}
+async function shareOrCopy(data, fallbackText){
+  try { if (navigator.share && (!data.files || (navigator.canShare && navigator.canShare(data)))) { await navigator.share(data); track("share", {kind: data.files ? "card" : "text"}); return; } } catch(e){ if (e && e.name === "AbortError") return; }
+  if (data.files) { toast("Press and hold the card to save it, then post it."); return; }
+  copy(fallbackText, "Copied. Paste it into a text.");
+}
+function copy(text, ok){
+  const fallback = () => { const ta = document.getElementById("msgtext"); try { const r = document.createRange(); r.selectNodeContents(ta); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } catch(e){} toast("Selected. Use your phone's Copy."); };
+  try { navigator.clipboard.writeText(text).then(() => toast(ok), fallback); } catch(e){ fallback(); }
+}
+function parseBackup(text){
+  try { const data = JSON.parse(text); const goals = Array.isArray(data) ? data : data.goals; if (!Array.isArray(goals) || !goals.every(g => g && g.id && Array.isArray(g.entries))) return null; return Array.isArray(data) ? {goals} : data; } catch(e){ return null; }
+}
+
+document.addEventListener("click", ev => {
+  const a = ev.target.closest("a[data-track]"); if (a) track("click", {where: a.dataset.track});
+});
+$app.addEventListener("click", ev => {
+  const b = ev.target.closest("button[data-act]"); if (!b) return; const act = b.dataset.act, v = b.dataset.v;
+  switch (act){
+    case "home": go("home"); break;
+    case "found": state.foundVia = state.foundVia === v ? "" : v; save(); render(); break;
+    case "begin": state.onboarded = true; save(); track("start", {found: state.foundVia}); draft = newDraft(null); step = 0; go("setup"); break;
+    case "examples": state.onboarded = true; state.goals = exampleGoals(); state.activeId = "ex2"; save(); track("start", {found: state.foundVia, examples:1}); go("home"); break;
+    case "restore-start": state.onboarded = true; save(); go("settings"); break;
+    case "why": go("home", {why:!extra.why}); break;
+    case "new": draft = newDraft(null); step = 0; go("setup"); break;
+    case "cancel-setup": draft = null; go("home"); break;
+    case "repeat": { const src = goal(b.dataset.id); draft = newDraft(src); step = 0; go("setup"); break; }
+    case "resume": { state.goals.forEach(x => { if (x.status === "active") x.status = "paused"; }); const g = goal(b.dataset.id); g.status = "active"; state.activeId = g.id; state.timer = null; save(); toast("Goal #"+g.num+" is back in progress."); go("home"); break; }
+    case "type": draft.type = v; if (v === "weekly" && /^min/.test(draft.unit) && !draft.amount) draft.unit = "miles"; render(); break;
+    case "mode": draft.mode = v; render(); break;
+    case "example": extra.example = !extra.example; render(); break;
+    case "ideas": extra.ideas = !extra.ideas; render(); break;
+    case "idea": {
+      const units = ["minutes","times","pages","push-ups","miles","dollars","ounces","items"];
+      if (draft.type === "weekly"){ const [act2, amt, unit, times] = v.split("|"); Object.assign(draft, {action:act2, amount:amt, unit, times, sentenceEdited:false}); }
+      else { const m = v.match(/^(.*?)(?: for)? (at least|at most) ([\d.]+) ([\w-]+)(.*)$/);
+        if (m){ Object.assign(draft, {action:m[1], mode:m[2]==="at most"?"most":"least", amount:m[3], unit: units.includes(m[4]) ? m[4] : "items", sentenceEdited:false}); }
+        else { const n = v.match(/([\d.]+) ([\w-]+)/); Object.assign(draft, {action:v, mode:"least", amount: n ? n[1] : "1", unit: n && units.includes(n[2]) ? n[2] : (n ? "items" : "times"), sentence:"I will "+v+" every day for the next "+length(draft)+" days.", sentenceEdited:true}); } }
+      extra.ideas = false; render(); break; }
+    case "next": { const s = stepList(draft)[step]; if (s===4 && !draft.sentenceEdited) draft.sentence = sentenceFor(draft); step++; extra = {}; render(); window.scrollTo(0,0); break; }
+    case "back": step--; extra = {}; render(); window.scrollTo(0,0); break;
+    case "start": {
+      const id = "g"+Date.now();
+      const g = Object.assign({}, draft, {id, entries:[], status:"active", reflection:null, example:false, seriesKey: draft.repeatOf || id});
+      if (!g.sentenceEdited || !g.sentence) g.sentence = sentenceFor(g); delete g.sentenceEdited; delete g.repeatOf;
+      if (g.type === "weekly"){ delete g.vision; delete g.why; delete g.plan; g.mode = "least"; }
+      state.goals.forEach(x => { if (x.status === "active") x.status = "paused"; });
+      state.goals.push(g); state.activeId = id; state.timer = null; save(); draft = null; track("goal", {type:g.type});
+      toast("Goal #"+g.num+" started."+(g.remindTime?" Add your reminder in Settings.":"")); go("home"); break; }
+    case "checkin": go("checkin"); break;
+    case "t-start": { try { audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)(); if (audioCtx.resume) audioCtx.resume(); } catch(e){}
+      keepCheckinFields(); state.timer = {goalId:state.activeId, startTs:Date.now(), startedLabel:nowTime(), pausedTotal:0, pausedAt:null, chimed:false}; extra.started = state.timer.startedLabel; save(); render(); break; }
+    case "t-pause": keepCheckinFields(); state.timer.pausedAt = Date.now(); save(); render(); break;
+    case "t-resume": keepCheckinFields(); state.timer.pausedTotal += Date.now() - state.timer.pausedAt; state.timer.pausedAt = null; save(); render(); break;
+    case "t-stop": { const mins = Math.round(timerElapsed(state.timer)/6000)/10; keepCheckinFields(); extra.logged = Math.max(mins, 0.1) + " minutes"; extra.started = state.timer.startedLabel; state.timer = null; save(); render(); toast("Logged "+extra.logged+". Add a note and save."); break; }
+    case "save-checkin": {
+      const g = active(); const p = document.getElementById("c-progress").value.trim();
+      if (!p){ toast("Add your progress first, like "+g.amount+" "+g.unit+"."); document.getElementById("c-progress").focus(); return; }
+      const met = metFor(g, p), today = todayISO();
+      if (g.entries.some(e => e.date === today)){ toast("Today is already logged. Edit it from the sheet."); return; }
+      g.entries.push({date:today, started:document.getElementById("c-started").value, progress:p, note:document.getElementById("c-note").value.trim(), met});
+      sortEntries(g); state.timer = null; save(); track("checkin", {type:g.type, n:g.entries.length});
+      if (isWeekly(g)){ const w = currentWeek(g); toast(!met ? "Saved. Under your minimum this time. That's information, not failure." : weekCount(g,w) === weekTarget(g,w) ? "Week "+(w+1)+" commitment honored." : "Session saved."); go("share"); break; }
+      const L = length(g), d = g.entries.length;
+      toast(!met ? (g.mode==="most" ? "Saved. Over your limit today. That's information. Tomorrow is a fresh day." : "Saved. Under your minimum today. Tomorrow is a fresh day.") : d===1 ? "Day 1 done. You started." : d===5 ? "Day 5! Consistency compounds." : d===10 ? "Day 10. Two-thirds there." : d===L ? "Day "+L+"! Time to reflect." : "Day "+d+" done.");
+      go(d >= L ? "reflect" : "share"); break; }
+    case "sheet": go("sheet", {id:b.dataset.id || state.activeId}); break;
+    case "edit-day": go("edit", {id:b.dataset.id, i:b.dataset.i}); break;
+    case "back-sheet": go("sheet", {id:extra.id}); break;
+    case "delete-day": extra.confirmDelete = true; render(); break;
+    case "delete-day-no": extra.confirmDelete = false; render(); break;
+    case "delete-day-yes": { const g = goal(extra.id); g.entries.splice(Number(extra.i), 1); save(); toast("Removed."); go("sheet", {id:g.id}); break; }
+    case "save-day": {
+      const g = goal(extra.id), i = Number(extra.i);
+      const date = document.getElementById("e-date").value, p = document.getElementById("e-progress").value.trim();
+      if (!date){ toast("Pick the date you did your goal."); return; }
+      if (date > todayISO()){ toast("That date hasn't happened yet. Pick today or an earlier day."); return; }
+      if (isWeekly(g) && (date < weekStart(g) || date > weekEnd(g))){ toast("Pick a date inside this goal's 5 weeks."); return; }
+      if (!p){ toast("Add your progress, like "+g.amount+" "+g.unit+"."); return; }
+      if (g.entries.some((x,j) => x.date === date && j !== i)){ toast(niceDate(date)+" is already logged. Edit that day instead."); return; }
+      if (i < 0 && !isWeekly(g) && g.entries.length >= length(g)){ toast("All "+length(g)+" days are already logged."); return; }
+      const entry = {date, started:document.getElementById("e-started").value, progress:p, note:document.getElementById("e-note").value.trim(), met:metFor(g, p)};
+      if (i < 0) g.entries.push(entry); else g.entries[i] = entry;
+      sortEntries(g); save(); toast(i < 0 ? "Added." : "Changes saved."); go("sheet", {id:g.id}); break; }
+    case "delete-goal": extra.confirmDeleteGoal = true; render(); break;
+    case "delete-goal-yes": { state.goals = state.goals.filter(x => x.id !== b.dataset.id); if (state.activeId === b.dataset.id) state.activeId = null; save(); toast("Goal deleted."); go("home"); break; }
+    case "finish-weekly": go("reflect"); break;
+    case "reflect": go("reflect"); break;
+    case "decide": extra.r.decision = v; render(); break;
+    case "future": extra.r.future = v; render(); break;
+    case "save-reflect": { const g = active(); g.reflection = Object.assign({}, extra.r); g.status = "done"; g.finishedOn = todayISO(); state.activeId = null; save(); track("finish", {type:g.type, decision:g.reflection.decision});
+      const dec = g.reflection.decision;
+      if (dec === "Continue" || dec === "Adjust"){ draft = newDraft(g); step = dec === "Adjust" ? stepList(draft).indexOf(4) : 0; toast(dec === "Adjust" ? "Saved. Adjust your goal for the next round." : "Saved. Your next round is ready to start."); go("setup"); }
+      else { toast("Reflection saved to your record."); go("home"); } break; }
+    case "share": go("share"); break;
+    case "share-card": { const g = active(); const text = shareText(g); const files = cardBlob ? [new File([cardBlob], "invest-progress.png", {type:"image/png"})] : null; shareOrCopy(files ? {files, text} : {text}, text); break; }
+    case "share-msg": { const text = document.getElementById("msgtext").textContent; shareOrCopy({text}, text); break; }
+    case "copy-msg": copy(document.getElementById("msgtext").textContent, "Copied. Paste it into a text."); break;
+    case "settings": go("settings"); break;
+    case "scope": state.settings.streakScope = v; save(); render(); break;
+    case "calendar": { const g = active(); if (download("invest-reminder.ics", icsFor(g), "text/calendar")) toast("Open the file to add it to your calendar."); else toast("Your phone couldn't save the file."); break; }
+    case "backup-file": { const text = JSON.stringify({app:"InVEST", version:VERSION, saved:todayISO(), goals:state.goals}, null, 1);
+      if (download("invest-backup-"+todayISO()+".json", text, "application/json")) { state.lastBackup = todayISO(); save(); toast("Backup saved. Keep it somewhere safe."); render(); } else toast("Couldn't save a file here. Use Copy as text."); break; }
+    case "copy-backup": { const text = JSON.stringify({app:"InVEST", version:VERSION, saved:todayISO(), goals:state.goals});
+      try { navigator.clipboard.writeText(text).then(() => { state.lastBackup = todayISO(); save(); toast("Backup copied. Paste it into an email to yourself."); }, () => toast("Couldn't copy here. Use Save backup file.")); } catch(e){ toast("Couldn't copy here. Use Save backup file."); } break; }
+    case "restore": { const data = parseBackup(document.getElementById("restore-text").value.trim()); if (!data){ toast("That doesn't look like an InVEST backup. Check that you pasted all of it."); return; } go("settings", {restoreReady:data}); break; }
+    case "restore-yes": { const data = extra.restoreReady; state.goals = data.goals; state.activeId = (data.goals.find(g => g.status === "active") || {}).id || null; state.timer = null; save(); toast("Restored "+data.goals.length+" goal"+(data.goals.length===1?"":"s")+"."); go("home"); break; }
+    case "install": if (installEvt){ installEvt.prompt(); installEvt.userChoice.finally(() => { installEvt = null; render(); }); } break;
+    case "install-dismiss": state.installDismissed = true; save(); render(); break;
+    case "clear-examples": state.goals = state.goals.filter(g => !g.example); if (!active()) state.activeId = (state.goals.find(g=>g.status==="active")||{}).id || null; save(); toast("Examples cleared."); go("home"); break;
+    case "day+": state.settings.dayOffset = (state.settings.dayOffset||0) + 1; save(); toast("Pretending it's "+niceDate(todayISO())+"."); render(); break;
+    case "day+7": state.settings.dayOffset = (state.settings.dayOffset||0) + 7; save(); toast("Pretending it's "+niceDate(todayISO())+"."); render(); break;
+    case "day0": state.settings.dayOffset = 0; save(); toast("Back to today."); render(); break;
+  }
+});
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; if (view === "home") render(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden){ tick(); if (view === "home") render(); } });
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) { try { navigator.serviceWorker.register("sw.js").catch(() => {}); } catch(e){} }
+if (state.timer && state.timer.goalId === state.activeId) view = "checkin";
+track("open", {standalone: isStandalone() ? 1 : 0});
+render();
+})();
+</script>
+<!--BODY-END-->
+</body>
+</html>
