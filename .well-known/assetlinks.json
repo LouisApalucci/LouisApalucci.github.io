@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.louisapalucci.invest",
+        "sha256_cert_fingerprints": ["B0:0E:A7:46:B4:73:78:FF:1E:69:7D:24:7A:B7:4D:7D:47:72:BE:C3:5A:63:28:3A:AA:75:45:69:15:80:7F:21"]
+      }
+    }]
